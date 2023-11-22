@@ -36,6 +36,7 @@ async function run() {
         const menuCollection = client.db("BistroDB").collection("menu")
         const ReviewCollection = client.db("BistroDB").collection("Reviews")
         const CardCollection = client.db("BistroDB").collection("CardItem")
+        const paymentCollection = client.db("BistroDB").collection("payments")
 
 
         // middlwarae
@@ -177,9 +178,6 @@ async function run() {
 
         // payment metohd
 
-
-
-
         app.post('/create-payment-intent', async (req, res) => {
             const { price } = req.body
             const amount = parseInt(price * 100)
@@ -198,6 +196,31 @@ async function run() {
             // res.send({
             //     clientSecret: paymentIntent.client_secret
             // })
+
+        })
+
+        app.post('/payments', async(req, res) =>{
+            const paymentInfo = req.body
+            const result = await paymentCollection.insertOne(paymentInfo)
+            console.log(paymentInfo)
+            const query = {_id: {
+                $in: paymentInfo.CartID.map(id => new ObjectId(id))
+            }}
+            const deleteResult = await CardCollection.deleteMany(query)
+            res.send({result, deleteResult})
+        })
+
+        app.get('/payment-history/:email', verifyToken, async(req, res) =>{
+            const email = req.params.email
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'Forbidden Access' })
+            }
+            const query = {email: email}
+            const result = await paymentCollection.find(query).toArray()    
+            const jsonData = result
+                  
+            console.log(jsonData)
+            res.send(result)
 
         })
 
