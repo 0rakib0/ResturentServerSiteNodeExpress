@@ -5,6 +5,9 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
+const stripe = require("stripe")('sk_test_51OEoO4BlrghrygtuCbkGUjrtQywdtw45jgAT1nyTzunkqxOaPtiMfmCNLWm1e7OzMu5vgcDsF6V5dHNsKhvkkLfx00gdDo00zx');
+
+
 
 // middlware 
 app.use(express.json())
@@ -132,9 +135,9 @@ async function run() {
             res.send(result)
         })
 
-        app.delete('/menu/:id',verifyToken, verifyAdmin, async (req, res) => {
+        app.delete('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
             const Id = req.params.id
-            const query = {_id: new ObjectId(Id) }
+            const query = { _id: new ObjectId(Id) }
             const result = await menuCollection.deleteOne(query)
             res.send(result)
         })
@@ -169,6 +172,33 @@ async function run() {
             const Item = req.body
             const result = await CardCollection.insertOne(Item)
             res.send(result)
+        })
+
+
+        // payment metohd
+
+
+
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body
+            const amount = parseInt(price * 100)
+            if (amount) {
+
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    payment_method_types: ['card']
+                })
+                res.send({
+                    clientSecret: paymentIntent.client_secret
+                })
+            }
+
+            // res.send({
+            //     clientSecret: paymentIntent.client_secret
+            // })
+
         })
 
 
