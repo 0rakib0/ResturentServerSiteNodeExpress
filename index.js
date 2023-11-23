@@ -229,7 +229,18 @@ async function run() {
             const users = await userCollection.estimatedDocumentCount()
             const menuItem = await menuCollection.estimatedDocumentCount()
             const totalOrder = await paymentCollection.estimatedDocumentCount()
-            res.send({users, menuItem, totalOrder})
+            const result = await paymentCollection.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: {
+                            $sum: '$price'
+                        }
+                    }
+                }
+            ]).toArray()
+            const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+            res.send({users, menuItem, totalOrder, revenue})
         })
 
 
