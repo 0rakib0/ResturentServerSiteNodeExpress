@@ -217,11 +217,19 @@ async function run() {
             }
             const query = {email: email}
             const result = await paymentCollection.find(query).toArray()    
-            const jsonData = result
+            // const jsonData = result
                   
-            console.log(jsonData)
+            // console.log(jsonData)
             res.send(result)
 
+        })
+
+
+        app.get('/admin-stats', async(req, res) =>{
+            const users = await userCollection.estimatedDocumentCount()
+            const menuItem = await menuCollection.estimatedDocumentCount()
+            const totalOrder = await paymentCollection.estimatedDocumentCount()
+            res.send({users, menuItem, totalOrder})
         })
 
 
